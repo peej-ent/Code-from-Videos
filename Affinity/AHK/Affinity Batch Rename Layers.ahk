@@ -1,11 +1,14 @@
-﻿; =====================================
-; Affinity Layer Batch Rename (Auto)
+; =====================================
+; Affinity Layer Batch Rename (Proper)
 ; =====================================
 ; F8   = set base name
 ; F11  = set how many layers to auto-rename
-; F9   = START auto-rename (after setting amount)
-; F10  = retry last rename (if it failed)
+; F9   = START auto-rename
 ; ESC  = kill script / stop auto-rename
+; =====================================
+; Uses Affinity shortcuts:
+; Ctrl+Shift+R = Rename layer
+; Alt+[        = Previous layer
 ; =====================================
 #NoEnv
 #SingleInstance Force
@@ -34,23 +37,12 @@ counter := 1
 MsgBox, Base name set to: %baseName%`n`nF11 = Set batch amount (default: 50)`nF9  = START auto-rename`nESC = Stop
 return
 
-; Retry last rename (if something went wrong)
-F10::
-if (baseName = "" || counter <= 1)
-{
-    MsgBox, Nothing to retry yet.
-    return
-}
-counter--
-Gosub, DoRename
-return
-
 ; Set batch amount (doesn't start yet)
 F11::
 InputBox, batchCount, Set Batch Amount, How many layers to rename?, , 300, 150, , , , , %batchCount%
 if (batchCount = "" || batchCount < 1)
     batchCount := 50
-MsgBox, Batch amount set to %batchCount% layers.`n`nClick on first layer, then press F9 to start!
+MsgBox, Batch amount set to %batchCount% layers.`n`nPress F9 to start!
 return
 
 ; START auto-rename with the set amount
@@ -69,25 +61,30 @@ Loop, %batchCount%
     Sleep, 1000
 }
 isRunning := false
+MsgBox, Finished renaming %batchCount% layers!
 return
 
-; The actual rename logic
+; The actual rename logic using Affinity shortcuts
 DoRename:
 ; Create padded number (e.g., 001, 002, 003)
 numStr := SubStr("000" . counter, -(padding - 1))
 newName := baseName . "_" . numStr
 
-; Select all text in the rename field
-Send, ^a
-Sleep, 80
+; Open rename dialog (Ctrl+Shift+R)
+Send, ^+r
+Sleep, 150
 
-; Type the new name slowly and reliably
+; Type the new name
 SendRaw, %newName%
 Sleep, 100
 
-; Move to next layer (Tab commits the rename automatically in Affinity)
-Send, {Tab}
-Sleep, 120
+; Confirm with Enter
+Send, {Enter}
+Sleep, 150
+
+; Go to next layer (Alt+[)
+Send, !{[}
+Sleep, 150
 
 counter++
 return
